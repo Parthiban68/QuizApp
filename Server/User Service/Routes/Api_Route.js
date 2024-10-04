@@ -1,6 +1,7 @@
 const express = require('express');
 const apiService = express.Router();
 const userService = require('../Controllers/Services');
+const path = require('path');
 
 apiService.get('/', (req,res)=>{
     res.status(200).json({message:"route"})
@@ -17,5 +18,28 @@ apiService.post('/signup',async (req,res) => {
     }
 })
 
+apiService.get(`/activate/:activationCode`, async (req,res) =>{
+    const {activationCode} = req.params;
+
+    try {
+        const activateMail = await userService.activate(activationCode);
+        const templatePath = path.join(__dirname, '..', 'utils' ,'Templates', 'greetingTemplate.html');
+         res.sendFile(templatePath)
+    } catch (error) {
+        res.status(400).json({message:"can't able to activate the mail", error})
+    }
+})
+
+
+apiService.post('/signin',async (req,res) =>{
+    const {email, password} = req.body;
+    try {
+ 
+        const userLogin = await userService.signin(email,password);
+        res.status(200).json({message:"Login Successfull", userLogin})
+    } catch (error) {
+        res.status(400).json({message:"can't able to login to your account", error})
+    }
+})
 
 module.exports = apiService;

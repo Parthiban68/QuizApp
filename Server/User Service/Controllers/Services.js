@@ -6,7 +6,6 @@ const activationMail = require("../utils/emailService");
 exports.signup = async (username, email, password) => {
   const userExits = await userRepositry.findByEmail(email);
 
-  console.log(userExits);
 
   if (userExits) {
     const error = new error.message();
@@ -29,12 +28,14 @@ exports.signup = async (username, email, password) => {
 
   const encryptPassword = encryptedPassword();
   const ivHex = forge.util.bytesToHex(iv);
+  const newSecretKey = forge.util.bytesToHex(secretkey);
 
   const data = await userRepositry.createUser(
     username,
     email,
     encryptPassword,
     ivHex,
+    newSecretKey,
     activationCode
   );
 
@@ -44,3 +45,42 @@ exports.signup = async (username, email, password) => {
 
   return data;
 };
+
+
+exports.activate = async (activationCode) =>{
+    const exists = await userRepositry.findActivationCode(activationCode);
+    
+    if(!exists){
+      const error = new error.message();
+    throw error;
+    }
+
+    const data = await userRepositry.activateId(exists)
+      return data;
+}
+
+exports.signin = async(email,password) =>{
+  const userDetails = await userRepositry.findEmail(email);
+    console.log(userDetails);
+    
+    
+  if(!userDetails){
+    const error = new error.message("user Not found");
+    throw error;
+  }
+
+  const comparePassword = (encryptedStoredPassword, iv, secertkey) =>{
+    const cipher = forge.cipher.createCipher("AES-CBC", {secertkey: forge.util.hexToBytes(secertkey)});
+    cipher.start({iv: forge.util.hexToBytes(iv)});
+    cipher.update(forge.util.createBuffer(password));
+    cipher.finish();
+    const encryptedUserPassword = forge.util.bytesToHex(cipher.output.getBytes());
+    console.log(encryptedUserPassword);
+    return encryptedUserPassword === encryptedStoredPassword
+  }
+  
+  const isMatching = comparePassword(userDetails.password,userDetails.iv,userDetails.secertkey);
+  console.log(isMatching);
+  
+
+}

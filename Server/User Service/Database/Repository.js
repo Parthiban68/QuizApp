@@ -11,6 +11,7 @@ exports.createUser = async (
   email,
   password,
   iv,
+  secertkey,
   activationCode
 ) => {
   const user = new userModel({
@@ -18,9 +19,24 @@ exports.createUser = async (
     email,
     password,
     iv,
+    secertkey,
     activationCode,
   });
   return await user.save();
 };
 
 
+exports.findActivationCode = async (activationCode) =>{
+  const activationExists = await userModel.findOne({activationCode});
+  return activationExists;
+}
+
+exports.activateId = async(exists) =>{
+    exists.isActivate = true;
+   return await exists.save()
+}
+
+exports.findEmail = async (email) => {
+  const userData = await userModel.findOne({email});
+  return userData;
+};
