@@ -1,11 +1,12 @@
 const { v4: uuidv4 } = require("uuid");
 const userRepositry = require("../Database/Repository");
 const forge = require("node-forge");
-const activationMail = require("../utils/emailService");
+const activationMail = require("../utils/Email/emailService");
+const jwt = require("jsonwebtoken");
+const forgetPasswordMail = require("../utils/Email/forgetPasswordEmail");
 
 exports.signup = async (username, email, password) => {
   const userExits = await userRepositry.findByEmail(email);
-
 
   if (userExits) {
     const error = new error.message();
@@ -46,41 +47,75 @@ exports.signup = async (username, email, password) => {
   return data;
 };
 
+exports.activate = async (activationCode) => {
+  const exists = await userRepositry.findActivationCode(activationCode);
 
-exports.activate = async (activationCode) =>{
-    const exists = await userRepositry.findActivationCode(activationCode);
-    
-    if(!exists){
-      const error = new error.message();
+  if (!exists) {
+    const error = new error.message();
     throw error;
-    }
+  }
 
-    const data = await userRepositry.activateId(exists)
-      return data;
-}
+  const data = await userRepositry.activateId(exists);
+  return data;
+};
 
-exports.signin = async(email,password) =>{
+exports.signin = async (email, password) => {
   const userDetails = await userRepositry.findEmail(email);
-    console.log(userDetails);
-    
-    
-  if(!userDetails){
+
+  if (!userDetails) {
+    console.log("user Not found");
     const error = new error.message("user Not found");
     throw error;
   }
 
-  const comparePassword = (encryptedStoredPassword, iv, secertkey) =>{
-    const cipher = forge.cipher.createCipher("AES-CBC", {secertkey: forge.util.hexToBytes(secertkey)});
-    cipher.start({iv: forge.util.hexToBytes(iv)});
+  const comparePassword = (encryptedStoredPassword, iv, storedSecertkey) => {
+    const secretkey = forge.util.hexToBytes(storedSecertkey);
+    const cipher = forge.cipher.createCipher("AES-CBC", secretkey);
+    cipher.start({ iv: forge.util.hexToBytes(iv) });
     cipher.update(forge.util.createBuffer(password));
     cipher.finish();
-    const encryptedUserPassword = forge.util.bytesToHex(cipher.output.getBytes());
-    console.log(encryptedUserPassword);
-    return encryptedUserPassword === encryptedStoredPassword
-  }
-  
-  const isMatching = comparePassword(userDetails.password,userDetails.iv,userDetails.secertkey);
-  console.log(isMatching);
-  
+    const encryptedUserPassword = forge.util.bytesToHex(
+      cipher.output.getBytes()
+    );
+    return encryptedUserPassword === encryptedStoredPassword;
+  };
 
-}
+  const isMatching = comparePassword(
+    userDetails.password,
+    userDetails.iv,
+    userDetails.secertkey
+  );
+
+  if (!isMatching) {
+    console.log("password not match");
+    const errors = new error.message("password not match");
+    throw errors;
+  }
+
+  if (!userDetails.isActivate) {
+    console.log("Not Activated");
+    const error = error.message("Not Activated");
+    throw error;
+  }
+
+  const token = jwt.sign({ _id: userDetails._id }, "secretkey123", {
+    expiresIn: "15d",
+  });
+
+  return {
+    token: token,
+    username: userDetails.username,
+    email: userDetails.email,
+  };
+};
+
+exports.forgetPassword = async (email) => {
+  const userEmail = await userRepositry.forgetPassword(email);
+
+  if (!userEmail) {
+    console.log("user Not found");
+    const error = new error.message("user Not found");
+    throw error;
+  }
+  return await forgetPasswordMail(email);
+};

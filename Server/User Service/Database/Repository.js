@@ -40,3 +40,8 @@ exports.findEmail = async (email) => {
   const userData = await userModel.findOne({email});
   return userData;
 };
+
+
+exports.forgetPassword = async (email) =>{
+    return await userModel.findOne({email})
+}
