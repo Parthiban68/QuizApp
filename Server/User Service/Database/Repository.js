@@ -1,8 +1,7 @@
 const userModel = require("../Models/RegistrationModel");
 
-
 exports.findByEmail = async (email) => {
-  const userData = await userModel.findOne({email});
+  const userData = await userModel.findOne({ email });
   return userData;
 };
 
@@ -25,23 +24,32 @@ exports.createUser = async (
   return await user.save();
 };
 
-
-exports.findActivationCode = async (activationCode) =>{
-  const activationExists = await userModel.findOne({activationCode});
+exports.findActivationCode = async (activationCode) => {
+  const activationExists = await userModel.findOne({ activationCode });
   return activationExists;
-}
+};
 
-exports.activateId = async(exists) =>{
-    exists.isActivate = true;
-   return await exists.save()
-}
+exports.activateId = async (exists) => {
+  exists.isActivate = true;
+  return await exists.save();
+};
 
 exports.findEmail = async (email) => {
-  const userData = await userModel.findOne({email});
+  const userData = await userModel.findOne({ email });
   return userData;
 };
 
+exports.forgetPassword = async (email) => {
+  return await userModel.findOne({ email });
+};
 
-exports.forgetPassword = async (email) =>{
-    return await userModel.findOne({email})
-}
+exports.saveResetToken = async (
+  user,
+  passwordResetToken,
+  passwordResetTokenExpries
+) => {
+  user.passwordResetToken = passwordResetToken;
+  user.passwordResetTokenExpries = passwordResetTokenExpries;
+
+  return await user.save();
+};

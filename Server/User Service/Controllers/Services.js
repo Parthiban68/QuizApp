@@ -1,9 +1,11 @@
 const { v4: uuidv4 } = require("uuid");
 const userRepositry = require("../Database/Repository");
 const forge = require("node-forge");
-const activationMail = require("../utils/Email/emailService");
+const emailService = require("../utils/Email/emailService");
 const jwt = require("jsonwebtoken");
-const forgetPasswordMail = require("../utils/Email/forgetPasswordEmail");
+const crypto = require("crypto");
+const path = require("path");
+const fs = require("fs");
 
 exports.signup = async (username, email, password) => {
   const userExits = await userRepositry.findByEmail(email);
@@ -42,7 +44,20 @@ exports.signup = async (username, email, password) => {
 
   const activationLink = `http://localhost:${process.env.api}/user/account/activate/${activationCode}`;
 
-  await activationMail(username, email, activationLink);
+  const templatePath = path.join(
+    __dirname,
+    "..",
+    "utils",
+    "Templates",
+    "Verificationmail.html"
+  );
+  let htmlContent = fs.readFileSync(templatePath, "Utf8");
+
+  htmlContent = htmlContent.replace("{{activationLink}}", activationLink);
+
+  const subject = "Confirm your email address";
+
+  await emailService(email, htmlContent, subject);
 
   return data;
 };
@@ -110,12 +125,39 @@ exports.signin = async (email, password) => {
 };
 
 exports.forgetPassword = async (email) => {
-  const userEmail = await userRepositry.forgetPassword(email);
+  let userEmail = await userRepositry.forgetPassword(email);
 
   if (!userEmail) {
     console.log("user Not found");
     const error = new error.message("user Not found");
     throw error;
   }
-  return await forgetPasswordMail(email);
+
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  console.log(resetToken);
+
+  const passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+  const passwordResetTokenExpries = Date.now() + 10 * 60 * 1000;
+
+  const storeToken = await userRepositry.saveResetToken(
+    userEmail,
+    passwordResetToken,
+    passwordResetTokenExpries
+  );
+
+  const templatePath = path.join(
+    __dirname,
+    "..",
+    "utils",
+    "Templates",
+    "forgetPasswordTemplate.html"
+  );
+  const htmlContent = fs.readFileSync(templatePath, "Utf8");
+
+  const subject = "Password Reset";
+
+  return await emailService(email, htmlContent, subject);
 };

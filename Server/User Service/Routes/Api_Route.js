@@ -50,7 +50,7 @@ apiService.post("/signin", async (req, res) => {
   }
 });
 
-apiService.post("/forgetpassword", async (req, res) => {
+apiService.patch("/forgetpassword", async (req, res) => {
   const {email} = req.body;
 
   try {
