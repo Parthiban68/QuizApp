@@ -1,6 +1,8 @@
 const nodemailer = require("nodemailer");
 
 const emailService = (email, htmlContent, subject) => {
+ 
+  
   const transport = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
@@ -10,7 +12,7 @@ const emailService = (email, htmlContent, subject) => {
     },
   });
 
-  const mailoption = {
+  const mailOption = {
     from: "QuizApp <noreply@quizapp.com>",
     to: email,
     subject: subject,
@@ -18,10 +20,9 @@ const emailService = (email, htmlContent, subject) => {
   };
 
   return new Promise((resolve, reject) => {
-    transport.sendMail(mailoption, (err, info) => {
+    transport.sendMail(mailOption, (err, info) => {
       if (err) {
-        console.log(err);
-        reject(new Error("can't able to send Mail"));
+        reject(new Error("can't can't able to send Mail", err));
       } else {
         resolve(
           "Mail Send to the user Successfully"

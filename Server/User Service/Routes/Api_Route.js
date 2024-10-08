@@ -61,4 +61,15 @@ apiService.patch("/forgetpassword", async (req, res) => {
   }
 });
 
+apiService.patch(`/resetpassword/:token`, async (req,res) =>{
+
+  const {token} = req.params
+  try {
+    res.status(200).json({message: "Password Reset Successfully", token})
+    
+  } catch (error) {
+    res.status(400).json({ message: "can't able to Reset the password", error })
+  }
+})
+
 module.exports = apiService;

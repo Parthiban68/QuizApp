@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
   activationCode: { type: String, require: true, default: null },
   isActivate: { type: Boolean, require: true, default: false },
   passwordResetToken:{type:String,require:true,default: null},
-  passwordResetTokenExpries:{type:String,require:true,default: null}
+  passwordResetTokenExpries:{type:Date,require:true,default: null}
 });
 
 const userModel = mongoose.model("userDetails", userSchema);

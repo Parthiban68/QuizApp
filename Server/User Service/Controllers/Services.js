@@ -148,6 +148,8 @@ exports.forgetPassword = async (email) => {
     passwordResetTokenExpries
   );
 
+  const token = `http://localhost:${process.env.api}/user/account/resetpassword/${resetToken}`;
+
   const templatePath = path.join(
     __dirname,
     "..",
@@ -155,8 +157,8 @@ exports.forgetPassword = async (email) => {
     "Templates",
     "forgetPasswordTemplate.html"
   );
-  const htmlContent = fs.readFileSync(templatePath, "Utf8");
-
+  let htmlContent = fs.readFileSync(templatePath, "Utf8");
+  htmlContent = htmlContent.replace("{{token}}", token);
   const subject = "Password Reset";
 
   return await emailService(email, htmlContent, subject);
