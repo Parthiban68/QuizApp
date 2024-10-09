@@ -53,3 +53,18 @@ exports.saveResetToken = async (
 
   return await user.save();
 };
+
+exports.findToken = async (token) => {
+  return await userModel.findOne({
+    passwordResetToken: token,
+    passwordResetTokenExpries: { $gt: Date.now() },
+  });
+};
+
+exports.savePassword = async(user,newPassword) =>{
+    user.password = newPassword;
+    user.passwordResetToken=undefined;
+    user.passwordResetTokenExpries=undefined;
+
+    return await user.save();
+}

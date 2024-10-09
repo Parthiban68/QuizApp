@@ -61,11 +61,12 @@ apiService.patch("/forgetpassword", async (req, res) => {
   }
 });
 
-apiService.patch(`/resetpassword/:token`, async (req,res) =>{
+apiService.patch(`/resetpassword`, async (req,res) =>{
 
-  const {token} = req.params
+  const {token, newPassword} = req.body
   try {
-    res.status(200).json({message: "Password Reset Successfully", token})
+   const data = await userService.resetPassword(token, newPassword);
+   res.status(200).json({message: "Password updated Succeessfully please login", data})
     
   } catch (error) {
     res.status(400).json({ message: "can't able to Reset the password", error })

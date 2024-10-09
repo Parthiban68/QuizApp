@@ -11,7 +11,7 @@ exports.signup = async (username, email, password) => {
   const userExits = await userRepositry.findByEmail(email);
 
   if (userExits) {
-    const error = new error.message();
+    const error = new error("user not exists");
     throw error;
   }
 
@@ -33,15 +33,6 @@ exports.signup = async (username, email, password) => {
   const ivHex = forge.util.bytesToHex(iv);
   const newSecretKey = forge.util.bytesToHex(secretkey);
 
-  const data = await userRepositry.createUser(
-    username,
-    email,
-    encryptPassword,
-    ivHex,
-    newSecretKey,
-    activationCode
-  );
-
   const activationLink = `http://localhost:${process.env.api}/user/account/activate/${activationCode}`;
 
   const templatePath = path.join(
@@ -59,6 +50,15 @@ exports.signup = async (username, email, password) => {
 
   await emailService(email, htmlContent, subject);
 
+  const data = await userRepositry.createUser(
+    username,
+    email,
+    encryptPassword,
+    ivHex,
+    newSecretKey,
+    activationCode
+  );
+
   return data;
 };
 
@@ -66,7 +66,7 @@ exports.activate = async (activationCode) => {
   const exists = await userRepositry.findActivationCode(activationCode);
 
   if (!exists) {
-    const error = new error.message();
+    const error = new error("user not exists");
     throw error;
   }
 
@@ -79,7 +79,7 @@ exports.signin = async (email, password) => {
 
   if (!userDetails) {
     console.log("user Not found");
-    const error = new error.message("user Not found");
+    const error = new error("user Not found");
     throw error;
   }
 
@@ -103,13 +103,13 @@ exports.signin = async (email, password) => {
 
   if (!isMatching) {
     console.log("password not match");
-    const errors = new error.message("password not match");
+    const errors = new error("password not match");
     throw errors;
   }
 
   if (!userDetails.isActivate) {
     console.log("Not Activated");
-    const error = error.message("Not Activated");
+    const error = new error("Not Activated");
     throw error;
   }
 
@@ -129,7 +129,7 @@ exports.forgetPassword = async (email) => {
 
   if (!userEmail) {
     console.log("user Not found");
-    const error = new error.message("user Not found");
+    const error = new error("user Not found");
     throw error;
   }
 
@@ -162,4 +162,19 @@ exports.forgetPassword = async (email) => {
   const subject = "Password Reset";
 
   return await emailService(email, htmlContent, subject);
+};
+
+exports.resetPassword = async (token, newPassword) => {
+  const newtoken = crypto.createHash("sha256").update(token).digest("hex");
+
+  let user = await userRepositry.findToken(newtoken);
+
+  if (!user) {
+    console.log("user Not found");
+    const error = new error("Token is invalid or expries", 400);
+    throw error;
+  }
+
+  const data = await userRepositry.savePassword(user, newPassword);
+  return data;
 };
