@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
+const encryption = require("../utils/Encryption/passwordEncryption");
 
 exports.signup = async (username, email, password) => {
   const userExits = await userRepositry.findByEmail(email);
@@ -19,17 +20,11 @@ exports.signup = async (username, email, password) => {
 
   const secretkey = forge.random.getBytesSync(32);
   const iv = forge.random.getBytesSync(16);
-
-  const encryptedPassword = () => {
-    const cipher = forge.cipher.createCipher("AES-CBC", secretkey);
-    cipher.start({ iv: iv });
-    cipher.update(forge.util.createBuffer(password));
-    cipher.finish();
-    const encrypted = cipher.output.getBytes();
-    return forge.util.bytesToHex(encrypted);
-  };
-
-  const encryptPassword = encryptedPassword();
+  const encryptPassword = encryption.encryptedPassword({
+    secretKey: secretkey,
+    iv: iv,
+    password: password,
+  });
   const ivHex = forge.util.bytesToHex(iv);
   const newSecretKey = forge.util.bytesToHex(secretkey);
 
@@ -83,23 +78,12 @@ exports.signin = async (email, password) => {
     throw error;
   }
 
-  const comparePassword = (encryptedStoredPassword, iv, storedSecertkey) => {
-    const secretkey = forge.util.hexToBytes(storedSecertkey);
-    const cipher = forge.cipher.createCipher("AES-CBC", secretkey);
-    cipher.start({ iv: forge.util.hexToBytes(iv) });
-    cipher.update(forge.util.createBuffer(password));
-    cipher.finish();
-    const encryptedUserPassword = forge.util.bytesToHex(
-      cipher.output.getBytes()
-    );
-    return encryptedUserPassword === encryptedStoredPassword;
-  };
-
-  const isMatching = comparePassword(
-    userDetails.password,
-    userDetails.iv,
-    userDetails.secertkey
-  );
+  const isMatching = encryption.comparePassword({
+    storedSecretkey: userDetails.secertkey,
+    storedIv: userDetails.iv,
+    userPassword: password,
+    storedPassword: userDetails.password,
+  });
 
   if (!isMatching) {
     console.log("password not match");
@@ -134,7 +118,6 @@ exports.forgetPassword = async (email) => {
   }
 
   const resetToken = crypto.randomBytes(32).toString("hex");
-  console.log(resetToken);
 
   const passwordResetToken = crypto
     .createHash("sha256")
@@ -174,7 +157,13 @@ exports.resetPassword = async (token, newPassword) => {
     const error = new error("Token is invalid or expries", 400);
     throw error;
   }
-
-  const data = await userRepositry.savePassword(user, newPassword);
+  const secretkey = forge.util.hexToBytes(user.secertkey);
+  const iv = forge.util.hexToBytes(user.iv);
+  const encrypteNewPassword = encryption.encryptedPassword({
+    secretKey: secretkey,
+    iv: iv,
+    password: newPassword,
+  });
+  const data = await userRepositry.savePassword(user, encrypteNewPassword);
   return data;
 };
