@@ -70,8 +70,7 @@ exports.activate = async (activationCode) => {
 };
 
 exports.signin = async (email, password) => {
-  const userDetails = await userRepositry.findEmail(email);
-
+  const userDetails = await userRepositry.findByEmail(email);
   if (!userDetails) {
     console.log("user Not found");
     const error = new error("user Not found");
@@ -109,8 +108,7 @@ exports.signin = async (email, password) => {
 };
 
 exports.forgetPassword = async (email) => {
-  let userEmail = await userRepositry.forgetPassword(email);
-
+  let userEmail = await userRepositry.findByEmail(email);
   if (!userEmail) {
     console.log("user Not found");
     const error = new error("user Not found");

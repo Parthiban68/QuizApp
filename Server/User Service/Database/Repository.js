@@ -1,8 +1,7 @@
 const userModel = require("../Models/RegistrationModel");
 
 exports.findByEmail = async (email) => {
-  const userData = await userModel.findOne({ email });
-  return userData;
+  return await userModel.findOne({ email });
 };
 
 exports.createUser = async (
@@ -34,15 +33,6 @@ exports.activateId = async (exists) => {
   return await exists.save();
 };
 
-exports.findEmail = async (email) => {
-  const userData = await userModel.findOne({ email });
-  return userData;
-};
-
-exports.forgetPassword = async (email) => {
-  return await userModel.findOne({ email });
-};
-
 exports.saveResetToken = async (
   user,
   passwordResetToken,
@@ -61,10 +51,10 @@ exports.findToken = async (token) => {
   });
 };
 
-exports.savePassword = async(user,newPassword) =>{
-    user.password = newPassword;
-    user.passwordResetToken=undefined;
-    user.passwordResetTokenExpries=undefined;
+exports.savePassword = async (user, newPassword) => {
+  user.password = newPassword;
+  user.passwordResetToken = undefined;
+  user.passwordResetTokenExpries = undefined;
 
-    return await user.save();
-}
+  return await user.save();
+};

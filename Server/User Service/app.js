@@ -4,6 +4,7 @@ require("dotenv").config();
 const cors = require("cors");
 const db = require("./Database/dataBase_Config");
 const userRegistration = require("./Routes/Api_Route");
+const logger = require("./utils/Log/logger");
 
 app.use(cors());
 app.use(express.json());
@@ -17,8 +18,8 @@ app.use("/account", userRegistration);
 
 app.listen(process.env.port, () => {
   try {
-    console.log(`Server Running on port ${process.env.port}`);
+    logger.info(`Server Running on port ${process.env.port}`);
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 });
