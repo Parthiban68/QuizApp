@@ -7,12 +7,13 @@ const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
 const encryption = require("../utils/Encryption/passwordEncryption");
+const customError = require('../utils/Error/customError')
 
 exports.signup = async (username, email, password) => {
   const userExits = await userRepositry.findByEmail(email);
 
   if (userExits) {
-    const error = new error("user not exists");
+    const error = new customError("user already registered", 404);
     throw error;
   }
 

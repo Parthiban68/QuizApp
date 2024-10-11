@@ -5,6 +5,7 @@ const cors = require("cors");
 const db = require("./Database/dataBase_Config");
 const userRegistration = require("./Routes/Api_Route");
 const logger = require("./utils/Log/logger");
+const globalErrorHandler = require('./utils/Error/globalErrorHandler')
 
 app.use(cors());
 app.use(express.json());
@@ -15,6 +16,15 @@ app.get("/", (req, res) => {
 });
 
 app.use("/account", userRegistration);
+
+app.all("*", (req,res,next) =>{
+  const err = new Error(`Can't able to find ${req.originalUrl} on the server`);
+  err.status = fail;
+  err.statusCode = 404;
+  next(err)
+})
+
+app.use(globalErrorHandler)
 
 app.listen(process.env.port, () => {
   try {

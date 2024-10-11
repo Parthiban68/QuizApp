@@ -7,7 +7,7 @@ apiService.get("/", (req, res) => {
   res.status(200).json({ message: "route" });
 });
 
-apiService.post("/signup", async (req, res) => {
+apiService.post("/signup", async (req, res,next) => {
   const { username, email, password } = req.body;
 
   try {
@@ -16,7 +16,7 @@ apiService.post("/signup", async (req, res) => {
       .status(200)
       .json({ message: "activation link send successfully", user });
   } catch (error) {
-    res.status(400).json({ message: "user already exists", error });
+    next(error)
   }
 });
 
