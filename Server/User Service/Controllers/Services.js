@@ -62,7 +62,7 @@ exports.activate = async (activationCode) => {
   const exists = await userRepositry.findActivationCode(activationCode);
 
   if (!exists) {
-    const error = new error("user not exists");
+    const error = new customError("User Activation Code Not Found", 404);
     throw error;
   }
 
@@ -73,8 +73,7 @@ exports.activate = async (activationCode) => {
 exports.signin = async (email, password) => {
   const userDetails = await userRepositry.findByEmail(email);
   if (!userDetails) {
-    console.log("user Not found");
-    const error = new error("user Not found");
+    const error = new customError("user Not Found", 400);
     throw error;
   }
 
@@ -86,14 +85,12 @@ exports.signin = async (email, password) => {
   });
 
   if (!isMatching) {
-    console.log("password not match");
-    const errors = new error("password not match");
-    throw errors;
+    const error = new customError("password does not match", 400);
+    throw error;
   }
 
   if (!userDetails.isActivate) {
-    console.log("Not Activated");
-    const error = new error("Not Activated");
+    const error = new customError("Your account not verified", 400);
     throw error;
   }
 
@@ -111,8 +108,7 @@ exports.signin = async (email, password) => {
 exports.forgetPassword = async (email) => {
   let userEmail = await userRepositry.findByEmail(email);
   if (!userEmail) {
-    console.log("user Not found");
-    const error = new error("user Not found");
+    const error = new customError("User Not Found", 404);
     throw error;
   }
 
@@ -152,8 +148,7 @@ exports.resetPassword = async (token, newPassword) => {
   let user = await userRepositry.findToken(newtoken);
 
   if (!user) {
-    console.log("user Not found");
-    const error = new error("Token is invalid or expries", 400);
+    const error = new customError("Token is invalid or expries", 404);
     throw error;
   }
   const secretkey = forge.util.hexToBytes(user.secertkey);
@@ -166,3 +161,25 @@ exports.resetPassword = async (token, newPassword) => {
   const data = await userRepositry.savePassword(user, encrypteNewPassword);
   return data;
 };
+
+exports.changepassword = async (email,password) => {
+
+  if(!email || !password){
+    const error = new customError("please provide valid email and password", 400);
+    throw error;
+  }
+
+  const userExits = await userRepositry.findByEmail(email);
+
+  if(!userExits){
+    const error = new customError("User Not Found", 404);
+    throw error;
+  }
+  const secretkey = forge.util.hexToBytes(userExits.secertkey);
+  const iv = forge.util.hexToBytes(userExits.iv);
+  const encrypteNewPassword = encryption.encryptedPassword({secretkey:secretkey, iv:iv, password:password})
+  const data = await userRepositry.changePassword(userExits, encrypteNewPassword);
+  return data;
+};
+
+

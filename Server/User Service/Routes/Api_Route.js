@@ -16,11 +16,11 @@ apiService.post("/signup", async (req, res,next) => {
       .status(200)
       .json({ message: "activation link send successfully", user });
   } catch (error) {
-    next(error)
+    next(error);
   }
 });
 
-apiService.get(`/activate/:activationCode`, async (req, res) => {
+apiService.get(`/activate/:activationCode`, async (req, res,next) => {
   const { activationCode } = req.params;
 
   try {
@@ -34,34 +34,32 @@ apiService.get(`/activate/:activationCode`, async (req, res) => {
     );
     res.sendFile(templatePath);
   } catch (error) {
-    res.status(400).json({ message: "can't able to activate the mail", error });
+    next(error);
   }
 });
 
-apiService.post("/signin", async (req, res) => {
+apiService.post("/signin", async (req, res,next) => {
   const { email, password } = req.body;
   try {
     const userLogin = await userService.signin(email, password);
     res.status(200).json({ message: "Login Successfull", userLogin });
   } catch (error) {
-    res
-      .status(400)
-      .json({ message: "can't able to login to your account", error });
+    next(error);
   }
 });
 
-apiService.patch("/forgetpassword", async (req, res) => {
+apiService.patch("/forgetpassword", async (req, res,next) => {
   const {email} = req.body;
 
   try {
     const data = await userService.forgetPassword(email);
     res.status(200).json({ message: "Mail send successfully", data });
   } catch (error) {
-    res.status(400).json({ message: "can't able to send mail", error });
+    next(error);
   }
 });
 
-apiService.patch(`/resetpassword`, async (req,res) =>{
+apiService.patch(`/resetpassword`, async (req, res,next) =>{
 
   const {token, newPassword} = req.body
   try {
@@ -69,8 +67,21 @@ apiService.patch(`/resetpassword`, async (req,res) =>{
    res.status(200).json({message: "Password updated Succeessfully please login", data})
     
   } catch (error) {
-    res.status(400).json({ message: "can't able to Reset the password", error })
+    next(error);
   }
 })
+
+apiService.patch('/changepassword',async (req,res,next)=>{
+  const {email, password} = req.body;
+  try {
+    const data = await userService.changepassword(email, password);
+    res.status(200).json({message:"Changed password succesfully", data})
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+
 
 module.exports = apiService;

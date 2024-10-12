@@ -58,3 +58,9 @@ exports.savePassword = async (user, newPassword) => {
 
   return await user.save();
 };
+
+
+exports.changePassword = async(userExits,password) =>{
+  userExits.password = password;
+  return await userExits.save();
+}
