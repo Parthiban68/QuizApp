@@ -7,7 +7,7 @@ const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
 const encryption = require("../utils/Encryption/passwordEncryption");
-const customError = require('../utils/Error/customError')
+const customError = require("../utils/Error/customError");
 
 exports.signup = async (username, email, password) => {
   const userExits = await userRepositry.findByEmail(email);
@@ -71,6 +71,14 @@ exports.activate = async (activationCode) => {
 };
 
 exports.signin = async (email, password) => {
+  if (!email || !password) {
+    const error = new customError(
+      "please provide valid email and password",
+      400
+    );
+    throw error;
+  }
+
   const userDetails = await userRepositry.findByEmail(email);
   if (!userDetails) {
     const error = new customError("user Not Found", 400);
@@ -94,7 +102,7 @@ exports.signin = async (email, password) => {
     throw error;
   }
 
-  const token = jwt.sign({ _id: userDetails._id }, "secretkey123", {
+  const token = jwt.sign({ _id: userDetails._id }, process.env.secert_str, {
     expiresIn: "15d",
   });
 
@@ -162,24 +170,33 @@ exports.resetPassword = async (token, newPassword) => {
   return data;
 };
 
-exports.changepassword = async (email,password) => {
-
-  if(!email || !password){
-    const error = new customError("please provide valid email and password", 400);
+exports.changepassword = async (email, password) => {
+  if (!email || !password) {
+    const error = new customError(
+      "please provide valid email and password",
+      400
+    );
     throw error;
   }
 
   const userExits = await userRepositry.findByEmail(email);
 
-  if(!userExits){
+  if (!userExits) {
     const error = new customError("User Not Found", 404);
     throw error;
   }
   const secretkey = forge.util.hexToBytes(userExits.secertkey);
   const iv = forge.util.hexToBytes(userExits.iv);
-  const encrypteNewPassword = encryption.encryptedPassword({secretkey:secretkey, iv:iv, password:password})
-  const data = await userRepositry.changePassword(userExits, encrypteNewPassword);
+  const encrypteNewPassword = encryption.encryptedPassword({
+    secretKey: secretkey,
+    iv: iv,
+    password: password,
+  });
+console.log(encrypteNewPassword);
+
+  const data = await userRepositry.changePassword(
+    userExits,
+    encrypteNewPassword
+  );
   return data;
 };
-
-

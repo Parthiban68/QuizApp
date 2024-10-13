@@ -2,6 +2,7 @@ const express = require("express");
 const apiService = express.Router();
 const userService = require("../Controllers/Services");
 const path = require("path");
+const auth = require('../utils/Authtenication/jwt_Authentication')
 
 apiService.get("/", (req, res) => {
   res.status(200).json({ message: "route" });
@@ -71,7 +72,7 @@ apiService.patch(`/resetpassword`, async (req, res,next) =>{
   }
 })
 
-apiService.patch('/changepassword',async (req,res,next)=>{
+apiService.patch('/changepassword',auth.authMiddelware,async (req,res,next)=>{
   const {email, password} = req.body;
   try {
     const data = await userService.changepassword(email, password);

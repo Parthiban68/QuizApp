@@ -64,3 +64,7 @@ exports.changePassword = async(userExits,password) =>{
   userExits.password = password;
   return await userExits.save();
 }
+
+exports.findUserId = async(id) =>{
+return await userModel.findById(id);
+}
