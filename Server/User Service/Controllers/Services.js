@@ -192,7 +192,6 @@ exports.changepassword = async (email, password) => {
     iv: iv,
     password: password,
   });
-console.log(encrypteNewPassword);
 
   const data = await userRepositry.changePassword(
     userExits,
