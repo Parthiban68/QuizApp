@@ -7,11 +7,13 @@ questionRoute.get("/",(req,res)=>{
 })
 
 questionRoute.post("/question",async (req,res)=>{
-    const questionData = req.body;
+    let questionData = req.body;
     try {
-        const response = await questionLogic.questionStore(questionData);
+        await questionLogic.questionStore(questionData);
         res.status(200).json({message:"Question Stored Successfully"});
     } catch (error) {
         res.status(400).json({message:"cant't able to stored question"})
     }
 })
+
+module.exports = questionRoute
