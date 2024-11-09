@@ -16,3 +16,12 @@ exports.saveQuestion = async (questionData) => {
   });
   return await question.save();
 };
+
+
+exports.findQuestion = async(_id,updatedQuestion) =>{
+  return await questionModel.findByIdAndUpdate(_id,updatedQuestion,{new:true})
+}
+
+exports.findQuestionandDelete = async (_id) =>{
+  return await questionModel.findByIdAndDelete(_id);
+}
