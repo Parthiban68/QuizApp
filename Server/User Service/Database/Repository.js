@@ -1,7 +1,7 @@
 const userModel = require("../Models/RegistrationModel");
 
 exports.findByEmail = async (email) => {
-  return await userModel.findOne({ email });
+  return await userModel.find({ email });
 };
 
 exports.createUser = async (
